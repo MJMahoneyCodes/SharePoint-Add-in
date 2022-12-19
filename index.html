@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Document Library Add-in</title>
+  <style>
+    /* Add any necessary styles for your Add-in here */
+  </style>
+</head>
+<body>
+  <h1>Document Library</h1>
+  <div id="documentList"></div>
+  <script>
+    //From ChatGPT
+    function getSelectedDocuments() {
+      // Get the current context
+      var context = new SP.ClientContext.get_current();
+
+      // Get the current list
+      var list = context.get_web().get_lists().getByTitle('ListName');
+
+      // Get the selected items from the list
+      var selectedItems = SP.ListOperation.Selection.getSelectedItems(context);
+
+      // Get the list items for the selected items
+      var items = [];
+      for (var i = 0; i < selectedItems.length; i++) {
+        var itemId = selectedItems[i].id;
+        var item = list.getItemById(itemId);
+        items.push(item);
+        context.load(item, 'Id');
+      }
+
+      // Execute the request and display the selected documents in the Add-in's front-end
+      context.executeQueryAsync(
+        function () {
+          var html = '<ul>';
+          for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var documentId = item.get_item('Id');
+            html += '<li>' + documentId + '</li>';
+          }
+          html += '</ul>';
+          document.getElementById('documentList').innerHTML = html;
+        },
+        function (sender, args) {
+          console.log(args.get_message());
+        }
+      );
+    }
+
+    // Call the getSelectedDocuments function when the page loads
+    window.onload = getSelectedDocuments;
+  </script>
+</body>
+</html>
